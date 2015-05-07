@@ -54,7 +54,8 @@ def get_result(url):
     c.perform()
     html = buf.getvalue()
     buf.close()
-    return html
+    name = url.split('/')[-1]
+    return (html, name)
 
 
 def download_image(url, number):
@@ -74,17 +75,24 @@ def download_image(url, number):
 
 
 def convert_to_pdf(filename):
-    os.system('convert ../output/*.jpg ../output/%s' % filename)
+    os.system('convert ../output/*.jpg ../output/%s.pdf' % filename)
     print "%s has been created at folder output please check" % filename
     filelist = [f for f in os.listdir("../output") if f.endswith(".jpg")]
     print "removing images"
     os.system('rm ../output/*.jpg')
 
+def mail_it(filename):
+    os.system('uuencode ../output/%s.pdf %s.pdf | mail -s %s blesslyy@gmail.com' % (filename, filename, filename))
+
 if __name__ == '__main__':
     os.system('rm -f ../output/*')
-    html = get_result(args['url'])
+    (html, name) = get_result(args['url'])
     url = get_img_url(html)
     pages = get_pages(html)
     download_image(url, pages)
     print "start conver images to pdf please wait..."
-    convert_to_pdf(args['file_name'])
+    if (args['file_name'] is not None):
+        name = args['file_name']
+    convert_to_pdf(name)
+    print "mail it"
+    mail_it(name)
